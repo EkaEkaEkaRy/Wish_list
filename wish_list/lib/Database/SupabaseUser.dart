@@ -35,9 +35,16 @@ String generateUniqueString() {
 
 void addUser(String mail, String name) async {
   try {
-    String user_id = generateUniqueString();
-    await Supabase.instance.client.from('users_info').insert(
-        {'id': user_id, 'mail': mail, 'name': name, 'user_id': user_id});
+    final user_exists = await Supabase.instance.client
+        .from('users_info')
+        .select('*')
+        .eq('mail', mail)
+        .count();
+    if (user_exists.count == 0) {
+      String user_id = generateUniqueString();
+      await Supabase.instance.client.from('users_info').insert(
+          {'id': user_id, 'mail': mail, 'name': name, 'user_id': user_id});
+    }
   } catch (e) {}
 }
 
