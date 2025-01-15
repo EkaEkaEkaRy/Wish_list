@@ -406,57 +406,62 @@ class _BurgerMenuState extends State<BurgerMenu> {
         child: Column(children: [
           Container(
             color: const Color.fromARGB(255, 0, 197, 191),
+            height: MediaQuery.of(context).size.height * 0.35,
             child: isUserInitialized
                 ? const Center(child: CircularProgressIndicator())
                 : user_info.length != 1
                     ? const Center(child: Text('Ошибка загрузки профиля'))
-                    : Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 8.0, right: 8.0, bottom: 8.0, top: 40.0),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.25,
-                              height: MediaQuery.of(context).size.width * 0.25,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    width: 2.0),
-                              ),
-                              child: ClipOval(
-                                  child: Image.network(user_info[0]['image'],
-                                      fit: BoxFit.cover)),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(user_info[0]['name'],
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 20.0)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(15.0),
-                            child: GestureDetector(
-                              onTap: () =>
-                                  _copyToClipboard(user_info[0]['user_id']),
-                              child: Row(
-                                children: [
-                                  Text(user_info[0]['user_id'],
-                                      style: TextStyle(
-                                          color: Colors.white, fontSize: 14.0)),
-                                  const SizedBox(width: 5.0),
-                                  Icon(
-                                    Icons.copy,
-                                    color: Colors.white,
-                                    size: 14.0,
-                                  )
-                                ],
+                    : Center(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                  left: 8.0, right: 8.0, bottom: 8.0, top: 8.0),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.25,
+                                height:
+                                    MediaQuery.of(context).size.width * 0.25,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      width: 2.0),
+                                ),
+                                child: ClipOval(
+                                    child: Image.network(user_info[0]['image'],
+                                        fit: BoxFit.cover)),
                               ),
                             ),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(user_info[0]['name'],
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 20.0)),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(15.0),
+                              child: GestureDetector(
+                                onTap: () =>
+                                    _copyToClipboard(user_info[0]['user_id']),
+                                child: Row(
+                                  children: [
+                                    Text(user_info[0]['user_id'],
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14.0)),
+                                    const SizedBox(width: 5.0),
+                                    Icon(
+                                      Icons.copy,
+                                      color: Colors.white,
+                                      size: 14.0,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
           ),
           GestureDetector(
