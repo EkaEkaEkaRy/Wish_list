@@ -416,7 +416,7 @@ class _BurgerMenuState extends State<BurgerMenu> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(
-                                left: 8.0, right: 8.0, bottom: 8.0, top: 10.0),
+                                left: 8.0, right: 8.0, bottom: 8.0, top: 20.0),
                             child: Container(
                               width: MediaQuery.of(context).size.width * 0.25,
                               height: MediaQuery.of(context).size.width * 0.25,
