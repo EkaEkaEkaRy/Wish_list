@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wish_list/Database/SupabaseUser.dart';
 import 'package:wish_list/Pages/MyFriendPage.dart';
 import 'package:wish_list/auth/auth_service.dart';
@@ -13,6 +14,15 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   final userId = AuthService().getCurrentUserId();
   final TextEditingController _controller = TextEditingController();
+  late PostgrestList user_list;
+  bool isUserInitialized = true;
+
+  @override
+  void initState() {
+    super.initState();
+    SupabaseUserService().selectFriends(userId).then((value) =>
+        {user_list = value, isUserInitialized = false, setState(() {})});
+  }
 
   void _performSearch(BuildContext context) async {
     String query = _controller.text;
@@ -28,6 +38,10 @@ class _FriendsPageState extends State<FriendsPage> {
                 user_image: user_info['image'])),
       );
       _controller.text = '';
+      setState(() {
+        SupabaseUserService().selectFriends(userId).then((value) =>
+            {user_list = value, isUserInitialized = false, setState(() {})});
+      });
     }
     setState(() {});
   }
@@ -40,7 +54,10 @@ class _FriendsPageState extends State<FriendsPage> {
           builder: (context) => FriendWishListPage(
               user_id: id, user_name: name, user_image: image)),
     );
-    setState(() {});
+    setState(() {
+      SupabaseUserService().selectFriends(userId).then((value) =>
+          {user_list = value, isUserInitialized = false, setState(() {})});
+    });
   }
 
   Future<bool?> _confirmDelete(int index) async {
@@ -136,102 +153,103 @@ class _FriendsPageState extends State<FriendsPage> {
                 ),
               ),
               Expanded(
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: SupabaseUserService().selectFriends(userId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return const Center(
-                          child: Text('Ошибка загрузки пользователей'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('Нет друзей'));
-                    }
-                    final notes = snapshot.data!;
-
-                    return ListView.builder(
-                      itemCount: notes.length,
-                      itemBuilder: (context, index) {
-                        final note = notes[index];
-                        return Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: Dismissible(
-                            key: Key(note['users_info']['name']),
-                            direction: DismissDirection.endToStart,
-                            confirmDismiss: (direction) async {
-                              return await _confirmDelete(index);
-                            },
-                            onDismissed: (direction) {
-                              setState(() {
-                                SupabaseUserService().deleteFriend(note['id']);
-                              });
-                            },
-                            background: Container(
-                              color: const Color.fromARGB(255, 252, 2, 105),
-                              alignment: Alignment.centerRight,
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Icon(Icons.delete, color: Colors.white),
-                            ),
-                            child: GestureDetector(
-                              onTap: () => _navToFriendsPage(
-                                  note['friend_id'],
-                                  note['users_info']['name'],
-                                  note['users_info']['image']),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: const Color.fromARGB(
-                                        255, 239, 218, 227),
-                                    width: 2.0,
+                child: isUserInitialized
+                    ? const Center(child: CircularProgressIndicator())
+                    : user_list.length == 0
+                        ? const Center(child: Text('Нет друзей'))
+                        : ListView.builder(
+                            itemCount: user_list.length,
+                            itemBuilder: (context, index) {
+                              final note = user_list[index];
+                              return Padding(
+                                padding: const EdgeInsets.all(5.0),
+                                child: Dismissible(
+                                  key: Key(note['users_info']['name']),
+                                  direction: DismissDirection.endToStart,
+                                  confirmDismiss: (direction) async {
+                                    return await _confirmDelete(index);
+                                  },
+                                  onDismissed: (direction) {
+                                    setState(() {
+                                      SupabaseUserService()
+                                          .deleteFriend(note['id']);
+                                      user_list = user_list
+                                          .where((item) =>
+                                              item['id'] != note['id'])
+                                          .toList();
+                                    });
+                                  },
+                                  background: Container(
+                                    color:
+                                        const Color.fromARGB(255, 252, 2, 105),
+                                    alignment: Alignment.centerRight,
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 20),
+                                    child:
+                                        Icon(Icons.delete, color: Colors.white),
                                   ),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width:
-                                            MediaQuery.of(context).size.width *
-                                                0.15,
-                                        height:
-                                            MediaQuery.of(context).size.width *
-                                                0.15,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                              color: const Color.fromARGB(
-                                                  255, 239, 218, 227),
-                                              width: 2.0),
-                                        ),
-                                        child: ClipOval(
-                                            child: Image.network(
-                                                note['users_info']['image'],
-                                                fit: BoxFit.cover)),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                            left: 15.0, right: 15.0),
-                                        child: Text(
-                                          note['users_info']['name'],
-                                          style: TextStyle(fontSize: 16.0),
+                                  child: GestureDetector(
+                                    onTap: () => _navToFriendsPage(
+                                        note['friend_id'],
+                                        note['users_info']['name'],
+                                        note['users_info']['image']),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromARGB(
+                                            255, 255, 255, 255),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: const Color.fromARGB(
+                                              255, 239, 218, 227),
+                                          width: 2.0,
                                         ),
                                       ),
-                                    ],
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.15,
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .width *
+                                                  0.15,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                    color: const Color.fromARGB(
+                                                        255, 239, 218, 227),
+                                                    width: 2.0),
+                                              ),
+                                              child: ClipOval(
+                                                  child: Image.network(
+                                                      note['users_info']
+                                                          ['image'],
+                                                      fit: BoxFit.cover)),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  left: 15.0, right: 15.0),
+                                              child: Text(
+                                                note['users_info']['name'],
+                                                style:
+                                                    TextStyle(fontSize: 16.0),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    );
-                  },
-                ),
               ),
             ],
           ),
