@@ -41,14 +41,20 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
     if (value) {
       await SupabaseListServer().CheckboxFalse(userId!, id);
       setState(() {
-        wishes[wishes.indexWhere((item) => item['id'] == id)]
-            ['checkbox_exists'] = false;
+        selest_list_wishes[selest_list_wishes
+            .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = false;
+        wishes = selest_list_wishes;
       });
     } else {
       await SupabaseListServer().CheckboxTrue(userId!, id);
       setState(() {
+        selest_list_wishes[selest_list_wishes
+            .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = true;
         wishes[wishes.indexWhere((item) => item['id'] == id)]
             ['checkbox_exists'] = true;
+        if (checkBoxHide) {
+          wishes = wishes.where((item) => item['id'] != id).toList();
+        }
       });
     }
   }

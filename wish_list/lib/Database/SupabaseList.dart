@@ -108,6 +108,21 @@ class SupabaseListServer {
   }
 
   Future<PostgrestList> selectFriendsList(userId, friendId) async {
+    // запрос для получения check box и количества пользователей отметивших желание
+    final response = await Supabase.instance.client
+        .from('wishes')
+        .select(
+            '''id, user_id, message, image, updated_at, check_box:id(id, user_id)''')
+        .order('updated_at', ascending: false)
+        .then((data) => data.map((wish) {
+              return {
+                ...wish,
+                'checkbox_exists': wish['check_box'] != null &&
+                    wish['check_box']['user_id'] == userId,
+                'count': (wish['check_box'] as List).length
+              };
+            }).toList());
+
     final data = await Supabase.instance.client
         .from('wishes')
         .select('*, check_box!left(*)')
