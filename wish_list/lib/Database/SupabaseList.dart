@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
-import 'dart:convert';
 
 class SupabaseListServer {
   Future<bool> existsWishFromWishList(int? id, userId, item) async {
