@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
+import 'dart:convert';
 
 class SupabaseListServer {
   Future<bool> existsWishFromWishList(int? id, userId, item) async {
@@ -109,33 +110,40 @@ class SupabaseListServer {
 
   Future<PostgrestList> selectFriendsList(userId, friendId) async {
     // запрос для получения check box и количества пользователей отметивших желание
+
     final response = await Supabase.instance.client
         .from('wishes')
-        .select(
-            '''id, user_id, message, image, updated_at, check_box:id(id, user_id)''')
+        .select('''
+        id,
+        user_id,
+        message,
+        image,
+        updated_at,
+        check_box(
+          id,
+          user_id
+        )
+        ''')
+        .eq('user_id', friendId) // Фильтруем желания пользователя A
         .order('updated_at', ascending: false)
-        .then((data) => data.map((wish) {
-              return {
-                ...wish,
-                'checkbox_exists': wish['check_box'] != null &&
-                    wish['check_box']['user_id'] == userId,
-                'count': (wish['check_box'] as List).length
-              };
-            }).toList());
+        .then((data) {
+          return data.map((wish) {
+            final checkBoxList = wish['check_box'] as List<dynamic>? ?? [];
 
-    final data = await Supabase.instance.client
-        .from('wishes')
-        .select('*, check_box!left(*)')
-        .eq('user_id', friendId)
-        .eq('check_box.user_id', userId)
-        .order('updated_at', ascending: false);
-    final wishesWithCheckboxStatus = data.map((wish) {
-      return {
-        ...wish,
-        'checkbox_exists': wish['check_box'].toString().length > 5,
-      };
-    }).toList();
-    return wishesWithCheckboxStatus;
+            // Проверяем, отмечено ли желание текущим пользователем (B)
+            final checkboxExists = checkBoxList.any((item) =>
+                item is Map<String, dynamic> && item['user_id'] == userId);
+
+            return {
+              ...wish,
+              'checkbox_exists': checkboxExists,
+              'count':
+                  checkBoxList.length, // Количество отметок для данного желания
+            };
+          }).toList();
+        });
+
+    return response;
   }
 
   Future<void> CheckboxTrue(String user_id, int id) async {

@@ -43,6 +43,8 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
       setState(() {
         selest_list_wishes[selest_list_wishes
             .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = false;
+        selest_list_wishes[selest_list_wishes
+            .indexWhere((item) => item['id'] == id)]['count'] -= 1;
         wishes = selest_list_wishes;
       });
     } else {
@@ -52,6 +54,8 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
             .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = true;
         wishes[wishes.indexWhere((item) => item['id'] == id)]
             ['checkbox_exists'] = true;
+        wishes[selest_list_wishes.indexWhere((item) => item['id'] == id)]
+            ['count'] += 1;
         if (checkBoxHide) {
           wishes = wishes.where((item) => item['id'] != id).toList();
         }
@@ -191,70 +195,87 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
                                     ),
                                     child: Padding(
                                       padding: const EdgeInsets.all(15.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Checkbox(
-                                            value: wishes[wishes.indexWhere(
-                                                        (item) =>
-                                                            item['id'] ==
-                                                            note['id'])]
-                                                    ['checkbox_exists']
-                                                ? true
-                                                : false,
-                                            onChanged: (value) {
-                                              _checkboxChange(
-                                                  note['id'],
-                                                  wishes[wishes.indexWhere(
-                                                          (item) =>
-                                                              item['id'] ==
-                                                              note['id'])]
-                                                      ['checkbox_exists']);
-                                            },
-                                            activeColor: const Color.fromARGB(
-                                                255, 252, 2, 105),
-                                            checkColor: const Color.fromARGB(
-                                                255, 255, 255, 255),
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Container(
-                                                width: MediaQuery.of(context)
-                                                        .size
-                                                        .width *
-                                                    0.65,
-                                                child: MessageWidget(
-                                                    message: note['message']),
+                                              Checkbox(
+                                                value: wishes[wishes.indexWhere(
+                                                            (item) =>
+                                                                item['id'] ==
+                                                                note['id'])]
+                                                        ['checkbox_exists']
+                                                    ? true
+                                                    : false,
+                                                onChanged: (value) {
+                                                  _checkboxChange(
+                                                      note['id'],
+                                                      wishes[wishes.indexWhere(
+                                                              (item) =>
+                                                                  item['id'] ==
+                                                                  note['id'])]
+                                                          ['checkbox_exists']);
+                                                },
+                                                activeColor:
+                                                    const Color.fromARGB(
+                                                        255, 252, 2, 105),
+                                                checkColor:
+                                                    const Color.fromARGB(
+                                                        255, 255, 255, 255),
                                               ),
-                                              if (note['image'] != null)
-                                                GestureDetector(
-                                                  onTap: () => _showImage(
-                                                      note['image'], context),
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            top: 8.0),
-                                                    child: Container(
-                                                      height: 100,
-                                                      width:
-                                                          MediaQuery.of(context)
+                                              Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Container(
+                                                    width:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .width *
+                                                            0.65,
+                                                    child: MessageWidget(
+                                                        message:
+                                                            note['message']),
+                                                  ),
+                                                  if (note['image'] != null)
+                                                    GestureDetector(
+                                                      onTap: () => _showImage(
+                                                          note['image'],
+                                                          context),
+                                                      child: Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .only(top: 8.0),
+                                                        child: Container(
+                                                          height: 100,
+                                                          width: MediaQuery.of(
+                                                                      context)
                                                                   .size
                                                                   .width *
                                                               0.65,
-                                                      child: Align(
-                                                        alignment: Alignment
-                                                            .centerLeft,
-                                                        child: Image.network(
-                                                            note['image']),
+                                                          child: Align(
+                                                            alignment: Alignment
+                                                                .centerLeft,
+                                                            child: Image
+                                                                .network(note[
+                                                                    'image']),
+                                                          ),
+                                                        ),
                                                       ),
                                                     ),
-                                                  ),
-                                                ),
+                                                ],
+                                              ),
                                             ],
                                           ),
+                                          const SizedBox(height: 5),
+                                          note['count'] != 0
+                                              ? Text(
+                                                  "Отмечено раз: ${note['count']}")
+                                              : SizedBox()
                                         ],
                                       ),
                                     )),
