@@ -447,12 +447,12 @@ class _BurgerMenuState extends State<BurgerMenu> {
                                 children: [
                                   Text(user_info[0]['user_id'],
                                       style: TextStyle(
-                                          color: Colors.white, fontSize: 14.0)),
+                                          color: Colors.white, fontSize: 16.0)),
                                   const SizedBox(width: 5.0),
                                   Icon(
                                     Icons.copy,
                                     color: Colors.white,
-                                    size: 14.0,
+                                    size: 18.0,
                                   )
                                 ],
                               ),
