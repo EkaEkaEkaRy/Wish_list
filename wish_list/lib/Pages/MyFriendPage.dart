@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wish_list/Database/SupabaseList.dart';
 import 'package:wish_list/Pages/components/MessageWithURL.dart';
@@ -202,6 +203,8 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
                                           Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
                                             children: [
                                               Checkbox(
                                                 value: wishes[wishes.indexWhere(
@@ -227,46 +230,102 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
                                                     const Color.fromARGB(
                                                         255, 255, 255, 255),
                                               ),
-                                              Column(
+                                              Row(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  Container(
-                                                    width:
-                                                        MediaQuery.of(context)
+                                                  Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        width: MediaQuery.of(
+                                                                    context)
                                                                 .size
                                                                 .width *
-                                                            0.65,
-                                                    child: MessageWidget(
-                                                        message:
-                                                            note['message']),
-                                                  ),
-                                                  if (note['image'] != null)
-                                                    GestureDetector(
-                                                      onTap: () => _showImage(
-                                                          note['image'],
-                                                          context),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .only(top: 8.0),
-                                                        child: Container(
-                                                          height: 100,
-                                                          width: MediaQuery.of(
-                                                                      context)
-                                                                  .size
-                                                                  .width *
-                                                              0.65,
-                                                          child: Align(
-                                                            alignment: Alignment
-                                                                .centerLeft,
-                                                            child: Image
-                                                                .network(note[
-                                                                    'image']),
+                                                            0.55,
+                                                        child: MessageWidget(
+                                                            message: note[
+                                                                'message']),
+                                                      ),
+                                                      if (note['image'] != null)
+                                                        GestureDetector(
+                                                          onTap: () =>
+                                                              _showImage(
+                                                                  note['image'],
+                                                                  context),
+                                                          child: Padding(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .only(
+                                                                    top: 8.0),
+                                                            child: Container(
+                                                              height: 100,
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  0.55,
+                                                              child: Align(
+                                                                alignment: Alignment
+                                                                    .centerLeft,
+                                                                child: Image
+                                                                    .network(note[
+                                                                        'image']),
+                                                              ),
+                                                            ),
                                                           ),
                                                         ),
-                                                      ),
+                                                    ],
+                                                  ),
+                                                  PopupMenuButton<String>(
+                                                    icon: const Icon(
+                                                      Icons.more_vert,
+                                                      color: Color.fromARGB(
+                                                          255, 252, 2, 105),
                                                     ),
+                                                    itemBuilder:
+                                                        (BuildContext context) {
+                                                      return [
+                                                        const PopupMenuItem<
+                                                            String>(
+                                                          value: 'Copy',
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons.copy,
+                                                                size: 17,
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        252,
+                                                                        2,
+                                                                        105),
+                                                              ),
+                                                              SizedBox(
+                                                                  width: 10),
+                                                              Text(
+                                                                'Копировать',
+                                                                style: TextStyle(
+                                                                    fontSize:
+                                                                        13),
+                                                              )
+                                                            ],
+                                                          ),
+                                                        )
+                                                      ];
+                                                    },
+                                                    onSelected: (String value) {
+                                                      if (value == 'Copy') {
+                                                        Clipboard.setData(
+                                                            ClipboardData(
+                                                                text: wishes[
+                                                                        index][
+                                                                    'message']));
+                                                      }
+                                                    },
+                                                  ),
                                                 ],
                                               ),
                                             ],
