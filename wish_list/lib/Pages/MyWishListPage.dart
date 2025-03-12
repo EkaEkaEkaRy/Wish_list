@@ -4,6 +4,7 @@ import 'package:wish_list/Database/SupabaseList.dart';
 import 'package:wish_list/Database/SupabaseUser.dart';
 import 'package:wish_list/Pages/AddNodePage.dart';
 import 'package:wish_list/Pages/EditProfile.dart';
+import 'package:wish_list/Pages/components/ExportPDF.dart';
 import 'package:wish_list/Pages/components/MessageWithURL.dart';
 import 'package:flutter/services.dart';
 import 'package:wish_list/auth/auth_service.dart';
@@ -129,7 +130,9 @@ class _MyWishListPageState extends State<MyWishListPage> {
         backgroundColor: const Color.fromARGB(255, 0, 197, 191), // #FC0269
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      endDrawer: BurgerMenu(),
+      endDrawer: BurgerMenu(
+        wishlist: isWishesInitialized ? [] : wishes,
+      ),
       body: Container(
         color: const Color.fromARGB(255, 220, 235, 235),
         child: Padding(
@@ -364,7 +367,8 @@ class _MyWishListPageState extends State<MyWishListPage> {
 }
 
 class BurgerMenu extends StatefulWidget {
-  const BurgerMenu({super.key});
+  const BurgerMenu({super.key, required this.wishlist});
+  final wishlist;
   @override
   State<BurgerMenu> createState() => _BurgerMenuState();
 }
@@ -469,6 +473,15 @@ class _BurgerMenuState extends State<BurgerMenu> {
                 height: 50.0,
                 child: Center(
                     child: const Text('Редактировать профиль',
+                        style: TextStyle(fontSize: 14.0)))),
+          ),
+          Container(height: 1, color: Colors.white),
+          GestureDetector(
+            onTap: () => generatePdf(widget.wishlist),
+            child: SizedBox(
+                height: 50.0,
+                child: Center(
+                    child: const Text('Экспортировать вишлист',
                         style: TextStyle(fontSize: 14.0)))),
           ),
           Container(height: 1, color: Colors.white),
