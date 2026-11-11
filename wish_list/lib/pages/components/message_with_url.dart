@@ -12,7 +12,7 @@ Future<void> _launchURL(String url) async {
     }
   } catch (e) {
     // Обработка ошибки, если URL не удалось открыть
-    print('Error: $e');
+    debugPrint("Error: ${e.hashCode}");
   }
 }
 
@@ -96,7 +96,7 @@ void _showPopupMenu(BuildContext context, String link) async {
 class MessageWidget extends StatelessWidget {
   final String message;
 
-  MessageWidget({required this.message});
+  const MessageWidget({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {

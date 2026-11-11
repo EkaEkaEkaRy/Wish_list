@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/widgets.dart';
+
 Future<Uint8List?> loadImage(String? imagePath) async {
   try {
     if (imagePath != null) {
@@ -12,7 +14,7 @@ Future<Uint8List?> loadImage(String? imagePath) async {
       return null;
     }
   } catch (e) {
-    print('Ошибка загрузки изображения: $e');
+    debugPrint('Ошибка загрузки изображения: $e');
   }
   return null;
 }

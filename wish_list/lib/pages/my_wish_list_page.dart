@@ -1,42 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wish_list/Database/SupabaseList.dart';
-import 'package:wish_list/Database/SupabaseUser.dart';
-import 'package:wish_list/Pages/AddNodePage.dart';
-import 'package:wish_list/Pages/EditProfile.dart';
-import 'package:wish_list/Pages/components/ExportPDF.dart';
-import 'package:wish_list/Pages/components/MessageWithURL.dart';
+import 'package:wish_list/database/supabase/supabase_list.dart';
+import 'package:wish_list/database/supabase/supabase_user.dart';
+import 'package:wish_list/pages/add_node_page.dart';
+import 'package:wish_list/pages/edit_profile.dart';
+import 'package:wish_list/pages/components/export_pdf.dart';
+import 'package:wish_list/pages/components/message_with_url.dart';
 import 'package:flutter/services.dart';
 import 'package:wish_list/auth/auth_service.dart';
 
 class MyWishListPage extends StatefulWidget {
+  const MyWishListPage({super.key});
+
   @override
-  _MyWishListPageState createState() => _MyWishListPageState();
+  State<MyWishListPage> createState() => _MyWishListPageState();
 }
 
 class _MyWishListPageState extends State<MyWishListPage> {
   final authService = AuthService();
-  final user_id = AuthService().getCurrentUserId();
+  final userId = AuthService().getCurrentUserId();
   late PostgrestList wishes;
   bool isWishesInitialized = true;
 
   @override
   void initState() {
     super.initState();
-    SupabaseListServer().selectWishList(user_id).then((value) =>
+    SupabaseListServer().selectWishList(userId).then((value) =>
         {wishes = value, isWishesInitialized = false, setState(() {})});
   }
 
-  void _navToEdit(int id, String text, String? image_path) async {
+  void _navToEdit(int id, String text, String? imagePath) async {
     isWishesInitialized = true;
     await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => AddNotePage(
-              wish_index: id, wish_text: text, wish_image_path: image_path)),
+              wishIndex: id, wishText: text, wishImagePath: imagePath)),
     );
     setState(() {
-      SupabaseListServer().selectWishList(user_id).then((value) =>
+      SupabaseListServer().selectWishList(userId).then((value) =>
           {wishes = value, isWishesInitialized = false, setState(() {})});
     });
   }
@@ -142,7 +144,7 @@ class _MyWishListPageState extends State<MyWishListPage> {
               Expanded(
                 child: isWishesInitialized
                     ? const Center(child: CircularProgressIndicator())
-                    : wishes.length == 0
+                    : wishes.isEmpty
                         ? const Center(child: Text('Нет желаний'))
                         : ListView.builder(
                             itemCount: wishes.length + 1,
@@ -352,7 +354,7 @@ class _MyWishListPageState extends State<MyWishListPage> {
             MaterialPageRoute(builder: (context) => AddNotePage()),
           );
           setState(() {
-            SupabaseListServer().selectWishList(user_id).then((value) =>
+            SupabaseListServer().selectWishList(userId).then((value) =>
                 {wishes = value, isWishesInitialized = false, setState(() {})});
           });
         },
@@ -374,22 +376,22 @@ class BurgerMenu extends StatefulWidget {
 }
 
 class _BurgerMenuState extends State<BurgerMenu> {
-  final user_id = AuthService().getCurrentUserId();
-  late PostgrestList user_info;
+  final userId = AuthService().getCurrentUserId();
+  late PostgrestList userInfo;
   bool isUserInitialized = true;
 
   @override
   void initState() {
     super.initState();
-    SupabaseUserService().getUser(user_id).then((value) =>
-        {user_info = value, isUserInitialized = false, setState(() {})});
+    SupabaseUserService().getUser(userId).then((value) =>
+        {userInfo = value, isUserInitialized = false, setState(() {})});
   }
 
-  void _navToEditProfile(String name, String? image_path) async {
+  void _navToEditProfile(String name, String? imagePath) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => EditProfile(name: name, image: image_path)),
+          builder: (context) => EditProfile(name: name, image: imagePath)),
     );
     setState(() {});
   }
@@ -413,7 +415,7 @@ class _BurgerMenuState extends State<BurgerMenu> {
             height: MediaQuery.of(context).size.height * 0.35,
             child: isUserInitialized
                 ? const Center(child: CircularProgressIndicator())
-                : user_info.length != 1
+                : userInfo.length != 1
                     ? const Center(child: Text('Ошибка загрузки профиля'))
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -432,13 +434,13 @@ class _BurgerMenuState extends State<BurgerMenu> {
                                     width: 2.0),
                               ),
                               child: ClipOval(
-                                  child: Image.network(user_info[0]['image'],
+                                  child: Image.network(userInfo[0]['image'],
                                       fit: BoxFit.cover)),
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text(user_info[0]['name'],
+                            child: Text(userInfo[0]['name'],
                                 style: TextStyle(
                                     color: Colors.white, fontSize: 20.0)),
                           ),
@@ -446,10 +448,10 @@ class _BurgerMenuState extends State<BurgerMenu> {
                             padding: const EdgeInsets.all(15.0),
                             child: GestureDetector(
                               onTap: () =>
-                                  _copyToClipboard(user_info[0]['user_id']),
+                                  _copyToClipboard(userInfo[0]['user_id']),
                               child: Row(
                                 children: [
-                                  Text(user_info[0]['user_id'],
+                                  Text(userInfo[0]['user_id'],
                                       style: TextStyle(
                                           color: Colors.white, fontSize: 16.0)),
                                   const SizedBox(width: 5.0),
@@ -466,8 +468,8 @@ class _BurgerMenuState extends State<BurgerMenu> {
                       ),
           ),
           GestureDetector(
-            onTap: () => isUserInitialized == false && user_info.length == 1
-                ? _navToEditProfile(user_info[0]['name'], user_info[0]['image'])
+            onTap: () => isUserInitialized == false && userInfo.length == 1
+                ? _navToEditProfile(userInfo[0]['name'], userInfo[0]['image'])
                 : {},
             child: SizedBox(
                 height: 50.0,

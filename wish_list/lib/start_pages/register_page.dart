@@ -49,6 +49,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     try {
       await authService.signUpWithEmailPassword(name, email, password);
+      if (!mounted) return null;
       Navigator.pop(context);
     } catch (e) {
       if (mounted) {

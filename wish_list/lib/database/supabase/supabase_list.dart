@@ -1,26 +1,28 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 
+import 'package:wish_list/Supabase_init.dart';
+
 class SupabaseListServer {
   Future<bool> existsWishFromWishList(int? id, userId, item) async {
-    final supabase_wishes = await Supabase.instance.client
+    final supabaseWishes = await Supabase.instance.client
         .from('wishes')
         .select('id')
         .eq('user_id', userId)
         .eq('message', item)
         .count();
 
-    if (supabase_wishes.count == 0) {
+    if (supabaseWishes.count == 0) {
       return true;
     } else {
       if (id != null) {
-        final find_wish = await Supabase.instance.client
+        final findWish = await Supabase.instance.client
             .from('wishes')
             .select()
             .eq('id', id)
             .eq('message', item)
             .count();
-        if (find_wish.count == 1) return true;
+        if (findWish.count == 1) return true;
       }
     }
     return false;
@@ -35,7 +37,7 @@ class SupabaseListServer {
   }
 
   Future<void> insertWishListItem(
-      String user_id, String item, Uint8List? image) async {
+      String userId, String item, Uint8List? image) async {
     if (image != null) {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
       await Supabase.instance.client.storage
@@ -47,14 +49,14 @@ class SupabaseListServer {
           .getPublicUrl(fileName);
 
       await Supabase.instance.client.from('wishes').insert({
-        'user_id': user_id,
+        'user_id': userId,
         'message': item,
         'image': publicUrl,
         'updated_at': DateTime.now().toUtc().toIso8601String()
       });
     } else {
       await Supabase.instance.client.from('wishes').insert({
-        'user_id': user_id,
+        'user_id': userId,
         'message': item,
         'updated_at': DateTime.now().toUtc().toIso8601String()
       });
@@ -64,9 +66,8 @@ class SupabaseListServer {
   Future<void> deleteWishListItem(int id, String? image) async {
     if (image != null) {
       String bucketName = 'images';
-      String filePath = image.replaceFirst(
-          'https://zrzodthyrvvusvrkybzs.supabase.co/storage/v1/object/public/$bucketName/',
-          '');
+      String filePath =
+          image.replaceFirst('$url/storage/v1/object/public/$bucketName/', '');
 
       await Supabase.instance.client.storage.from('images').remove([filePath]);
     }
@@ -74,12 +75,11 @@ class SupabaseListServer {
   }
 
   Future<void> updateWishListItem(
-      int id, String item, String? image_path, Uint8List? image) async {
-    if (image_path != null) {
+      int id, String item, String? imagePath, Uint8List? image) async {
+    if (imagePath != null) {
       String bucketName = 'images';
-      String filePath = image_path.replaceFirst(
-          'https://zrzodthyrvvusvrkybzs.supabase.co/storage/v1/object/public/$bucketName/',
-          '');
+      String filePath = imagePath.replaceFirst(
+          '$url/storage/v1/object/public/$bucketName/', '');
 
       await Supabase.instance.client.storage.from('images').remove([filePath]);
     }
@@ -145,17 +145,17 @@ class SupabaseListServer {
     return response;
   }
 
-  Future<void> CheckboxTrue(String user_id, int id) async {
+  Future<void> checkboxTrue(String userId, int id) async {
     await Supabase.instance.client
         .from('check_box')
-        .insert({'wish_id': id, 'user_id': user_id});
+        .insert({'wish_id': id, 'user_id': userId});
   }
 
-  Future<void> CheckboxFalse(String user_id, int id) async {
+  Future<void> checkboxFalse(String userId, int id) async {
     await Supabase.instance.client
         .from('check_box')
         .delete()
         .eq('wish_id', id)
-        .eq('user_id', user_id);
+        .eq('user_id', userId);
   }
 }

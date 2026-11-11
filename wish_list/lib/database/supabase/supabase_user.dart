@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:wish_list/Supabase_init.dart';
 
 String generateUniqueString() {
   String milliseconds = DateTime.now().millisecondsSinceEpoch.toString();
@@ -35,17 +36,19 @@ String generateUniqueString() {
 
 void addUser(String mail, String name) async {
   try {
-    final user_exists = await Supabase.instance.client
+    final userExists = await Supabase.instance.client
         .from('users_info')
         .select('*')
         .eq('mail', mail)
         .count();
-    if (user_exists.count == 0) {
-      String user_id = generateUniqueString();
+    if (userExists.count == 0) {
+      String userId = generateUniqueString();
       await Supabase.instance.client.from('users_info').insert(
-          {'id': user_id, 'mail': mail, 'name': name, 'user_id': user_id});
+          {'id': userId, 'mail': mail, 'name': name, 'user_id': userId});
     }
-  } catch (e) {}
+  } catch (e) {
+    debugPrint("Error: ${e.hashCode}");
+  }
 }
 
 void updateUserID(String mail, String uid) async {
@@ -59,7 +62,9 @@ void updateUserID(String mail, String uid) async {
           .from('users_info')
           .update({'id': uid}).eq('mail', mail);
     }
-  } catch (e) {}
+  } catch (e) {
+    debugPrint("Error: ${e.hashCode}");
+  }
 }
 
 class SupabaseUserService {
@@ -82,33 +87,34 @@ class SupabaseUserService {
     await Supabase.instance.client.from('friends').delete().eq('id', id);
   }
 
-  Future<PostgrestMap?> addFriend(
-      BuildContext context, user_id, user_cod) async {
-    final user_info = await Supabase.instance.client
+  Future<PostgrestMap?> addFriend(BuildContext context, userId, userCod) async {
+    final userInfo = await Supabase.instance.client
         .from('users_info')
         .select('id, name, image')
-        .eq('user_id', user_cod);
+        .eq('user_id', userCod);
 
-    if (user_info.length != 0) {
-      if (user_id != user_info[0]['id']) {
+    if (userInfo.isNotEmpty) {
+      if (userId != userInfo[0]['id']) {
         final friends = await Supabase.instance.client
             .from('friends')
             .select('id')
-            .eq('user_id', user_id)
-            .eq('friend_id', user_info[0]['id']);
-        if (friends.length == 0) {
+            .eq('user_id', userId)
+            .eq('friend_id', userInfo[0]['id']);
+        if (friends.isEmpty) {
           await Supabase.instance.client
               .from('friends')
-              .insert({'user_id': user_id, 'friend_id': user_info[0]['id']});
+              .insert({'user_id': userId, 'friend_id': userInfo[0]['id']});
         }
-        return user_info[0];
+        return userInfo[0];
       } else {
+        if (!context.mounted) return null;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Невозможно добавить пользователя'),
           backgroundColor: Color.fromARGB(255, 252, 2, 105),
         ));
       }
     } else {
+      if (!context.mounted) return null;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Пользователя не существует'),
         backgroundColor: Color.fromARGB(255, 252, 2, 105),
@@ -117,21 +123,20 @@ class SupabaseUserService {
     return null;
   }
 
-  Future<void> updateLastVisit(String user_id, String friend_id) async {
+  Future<void> updateLastVisit(String userId, String friendId) async {
     await Supabase.instance.client
         .from('friends')
         .update({'visited_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('user_id', user_id)
-        .eq('friend_id', friend_id);
+        .eq('user_id', userId)
+        .eq('friend_id', friendId);
   }
 
   Future<void> updateProfile(
-      String user_id, String name, String? image_path, Uint8List? image) async {
-    if (image != null && image_path != null) {
+      String userId, String name, String? imagePath, Uint8List? image) async {
+    if (image != null && imagePath != null) {
       String bucketName = 'users';
-      String filePath = image_path.replaceFirst(
-          'https://zrzodthyrvvusvrkybzs.supabase.co/storage/v1/object/public/$bucketName/',
-          '');
+      String filePath = imagePath.replaceFirst(
+          '$url/storage/v1/object/public/$bucketName/', '');
       if (filePath != 'user_default.png') {
         await Supabase.instance.client.storage
             .from('images')
@@ -149,11 +154,11 @@ class SupabaseUserService {
       await Supabase.instance.client.from('users_info').update({
         'name': name,
         'image': publicUrl,
-      }).eq('id', user_id);
+      }).eq('id', userId);
     } else {
       await Supabase.instance.client.from('users_info').update({
         'name': name,
-      }).eq('id', user_id);
+      }).eq('id', userId);
     }
   }
 }

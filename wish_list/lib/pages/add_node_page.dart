@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
-import 'package:wish_list/Database/SupabaseList.dart';
+import 'package:wish_list/database/supabase/supabase_list.dart';
 import 'package:wish_list/auth/auth_service.dart';
 
 class AddNotePage extends StatefulWidget {
   const AddNotePage(
-      {super.key, this.wish_index, this.wish_text, this.wish_image_path});
-  final int? wish_index;
-  final String? wish_text;
-  final String? wish_image_path;
+      {super.key, this.wishIndex, this.wishText, this.wishImagePath});
+  final int? wishIndex;
+  final String? wishText;
+  final String? wishImagePath;
 
   @override
   State<AddNotePage> createState() => _AddNotePageState();
@@ -18,15 +18,15 @@ class AddNotePage extends StatefulWidget {
 class _AddNotePageState extends State<AddNotePage> {
   final TextEditingController _controller = TextEditingController();
   Uint8List? _image;
-  String? _image_path;
+  String? _imagePath;
 
   final userId = AuthService().getCurrentUserId();
 
   @override
   void initState() {
     super.initState();
-    if (widget.wish_image_path != null) _image_path = widget.wish_image_path;
-    if (widget.wish_text != null) _controller.text = widget.wish_text!;
+    if (widget.wishImagePath != null) _imagePath = widget.wishImagePath;
+    if (widget.wishText != null) _controller.text = widget.wishText!;
   }
 
   void _pickImage() async {
@@ -38,7 +38,7 @@ class _AddNotePageState extends State<AddNotePage> {
       final Uint8List imageData = await image.readAsBytes();
       setState(() {
         _image = imageData;
-        _image_path = null;
+        _imagePath = null;
       });
     }
   }
@@ -46,26 +46,29 @@ class _AddNotePageState extends State<AddNotePage> {
   void _addNote() async {
     if (_controller.text.isNotEmpty) {
       final isTrue = await SupabaseListServer()
-          .existsWishFromWishList(widget.wish_index, userId, _controller.text);
+          .existsWishFromWishList(widget.wishIndex, userId, _controller.text);
       if (isTrue) {
-        if (widget.wish_index == null) {
+        if (widget.wishIndex == null) {
           await SupabaseListServer()
               .insertWishListItem(userId!, _controller.text, _image);
+          if (!mounted) return null;
           Navigator.pop(context);
 
           setState(() {});
         } else {
-          if (_image_path != null) {
+          if (_imagePath != null) {
             await SupabaseListServer().updateWishListItem(
-                widget.wish_index!, _controller.text, null, null);
+                widget.wishIndex!, _controller.text, null, null);
           } else {
-            await SupabaseListServer().updateWishListItem(widget.wish_index!,
-                _controller.text, widget.wish_image_path, _image);
+            await SupabaseListServer().updateWishListItem(widget.wishIndex!,
+                _controller.text, widget.wishImagePath, _image);
           }
+          if (!mounted) return null;
           Navigator.pop(context);
           setState(() {});
         }
       } else {
+        if (!mounted) return null;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Такое желание уже существует'),
           backgroundColor: Color.fromARGB(255, 252, 2, 105),
@@ -148,16 +151,16 @@ class _AddNotePageState extends State<AddNotePage> {
                           icon: Icon(Icons.cancel_outlined))
                     ],
                   )
-                : _image_path != null
+                : _imagePath != null
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.network(_image_path!, height: 100),
+                          Image.network(_imagePath!, height: 100),
                           IconButton(
                               onPressed: () {
                                 setState(() {
-                                  _image_path = null;
+                                  _imagePath = null;
                                 });
                               },
                               icon: Icon(Icons.cancel_outlined))

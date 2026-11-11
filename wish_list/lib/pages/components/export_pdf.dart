@@ -1,9 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
-import 'dart:typed_data';
-import 'dart:ui';
 
 Future<void> generatePdf(List<Map<String, dynamic>> items) async {
   // Загрузите шрифт из assets
@@ -79,6 +78,6 @@ Future<void> generatePdf(List<Map<String, dynamic>> items) async {
   );
 
   if (outputPath != null) {
-    print('Файл сохранён: $outputPath');
+    debugPrint('Файл сохранён: $outputPath');
   }
 }

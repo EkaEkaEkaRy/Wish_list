@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:wish_list/Database/SupabaseUser.dart';
+import 'package:wish_list/database/supabase/supabase_user.dart';
 import 'package:wish_list/auth/auth_service.dart';
 
 class EditProfile extends StatefulWidget {
@@ -17,14 +17,14 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final TextEditingController _controller = TextEditingController();
   Uint8List? _image;
-  String? _image_path;
+  String? _imagePath;
 
   final userId = AuthService().getCurrentUserId();
 
   @override
   void initState() {
     super.initState();
-    _image_path = widget.image;
+    _imagePath = widget.image;
     _controller.text = widget.name!;
   }
 
@@ -36,20 +36,21 @@ class _EditProfileState extends State<EditProfile> {
       final Uint8List imageData = await image.readAsBytes();
       setState(() {
         _image = imageData;
-        _image_path = null;
+        _imagePath = null;
       });
     }
   }
 
   void _addNote() async {
     if (_controller.text.isNotEmpty) {
-      if (_image_path != null) {
+      if (_imagePath != null) {
         await SupabaseUserService()
             .updateProfile(userId!, _controller.text, null, null);
       } else {
         await SupabaseUserService()
             .updateProfile(userId!, _controller.text, widget.image, _image);
       }
+      if (!mounted) return null;
       Navigator.pop(context);
       setState(() {});
     } else {
@@ -122,7 +123,7 @@ class _EditProfileState extends State<EditProfile> {
             const SizedBox(height: 10),
             _image != null
                 ? Image.memory(_image!, height: 100)
-                : Image.network(_image_path!, height: 100),
+                : Image.network(_imagePath!, height: 100),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _addNote,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wish_list/StartPages/loginPage.dart';
-import 'package:wish_list/StartPages/startPage.dart';
+import 'package:wish_list/start_pages/login_page.dart';
+import 'package:wish_list/start_pages/start_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthGate extends StatelessWidget {

@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wish_list/Database/SupabaseList.dart';
-import 'package:wish_list/Pages/components/MessageWithURL.dart';
+import 'package:wish_list/database/supabase/supabase_list.dart';
 import 'package:wish_list/auth/auth_service.dart';
+import 'package:wish_list/pages/components/message_with_url.dart';
 
 class FriendWishListPage extends StatefulWidget {
   const FriendWishListPage(
       {super.key,
-      required this.user_id,
-      required this.user_name,
-      required this.user_image});
-  final String user_id;
-  final String user_name;
-  final String user_image;
+      required this.userId,
+      required this.userName,
+      required this.userImage});
+  final String userId;
+  final String userName;
+  final String userImage;
   @override
-  _FriendWishListPageState createState() => _FriendWishListPageState();
+  @override
+  State<FriendWishListPage> createState() => _FriendWishListPageState();
 }
 
 class _FriendWishListPageState extends State<FriendWishListPage> {
   final userId = AuthService().getCurrentUserId();
   bool checkBoxHide = false;
-  late PostgrestList selest_list_wishes;
+  late PostgrestList selestListWishes;
   late PostgrestList wishes;
   bool isWishesInitialized = true;
 
@@ -29,9 +30,9 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
   void initState() {
     super.initState();
     SupabaseListServer()
-        .selectFriendsList(userId, widget.user_id)
+        .selectFriendsList(userId, widget.userId)
         .then((value) => {
-              selest_list_wishes = value,
+              selestListWishes = value,
               wishes = value,
               isWishesInitialized = false,
               setState(() {})
@@ -40,22 +41,22 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
 
   void _checkboxChange(id, value) async {
     if (value) {
-      await SupabaseListServer().CheckboxFalse(userId!, id);
+      await SupabaseListServer().checkboxFalse(userId!, id);
       setState(() {
-        selest_list_wishes[selest_list_wishes
+        selestListWishes[selestListWishes
             .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = false;
-        selest_list_wishes[selest_list_wishes
+        selestListWishes[selestListWishes
             .indexWhere((item) => item['id'] == id)]['count'] -= 1;
-        wishes = selest_list_wishes;
+        wishes = selestListWishes;
       });
     } else {
-      await SupabaseListServer().CheckboxTrue(userId!, id);
+      await SupabaseListServer().checkboxTrue(userId!, id);
       setState(() {
-        selest_list_wishes[selest_list_wishes
+        selestListWishes[selestListWishes
             .indexWhere((item) => item['id'] == id)]['checkbox_exists'] = true;
         wishes[wishes.indexWhere((item) => item['id'] == id)]
             ['checkbox_exists'] = true;
-        wishes[selest_list_wishes.indexWhere((item) => item['id'] == id)]
+        wishes[selestListWishes.indexWhere((item) => item['id'] == id)]
             ['count'] += 1;
         if (checkBoxHide) {
           wishes = wishes.where((item) => item['id'] != id).toList();
@@ -113,14 +114,14 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
               ),
               child: ClipOval(
                 child: Image.network(
-                  widget.user_image,
+                  widget.userImage,
                   fit: BoxFit.cover,
                 ),
               ),
             ),
             const SizedBox(width: 5.0),
             Text(
-              widget.user_name,
+              widget.userName,
               style: TextStyle(color: Colors.white),
             ),
           ],
@@ -153,11 +154,11 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
                             checkBoxHide = !checkBoxHide;
                             setState(() {
                               wishes = checkBoxHide
-                                  ? selest_list_wishes
+                                  ? selestListWishes
                                       .where((note) =>
                                           note['checkbox_exists'] == false)
                                       .toList()
-                                  : selest_list_wishes;
+                                  : selestListWishes;
                             });
                           },
                           activeColor: const Color.fromARGB(255, 252, 2, 105),
@@ -175,7 +176,7 @@ class _FriendWishListPageState extends State<FriendWishListPage> {
               Expanded(
                 child: isWishesInitialized
                     ? const Center(child: CircularProgressIndicator())
-                    : wishes.length == 0
+                    : wishes.isEmpty
                         ? const Center(child: Text('Нет желаний'))
                         : ListView.builder(
                             itemCount: wishes.length,

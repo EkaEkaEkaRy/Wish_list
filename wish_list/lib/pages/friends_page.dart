@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wish_list/Database/SupabaseUser.dart';
-import 'package:wish_list/Pages/MyFriendPage.dart';
+import 'package:wish_list/database/supabase/supabase_user.dart';
+import 'package:wish_list/pages/my_friend_page.dart';
 import 'package:wish_list/auth/auth_service.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -14,33 +14,34 @@ class FriendsPage extends StatefulWidget {
 class _FriendsPageState extends State<FriendsPage> {
   final userId = AuthService().getCurrentUserId();
   final TextEditingController _controller = TextEditingController();
-  late PostgrestList user_list;
+  late PostgrestList userList;
   bool isUserInitialized = true;
 
   @override
   void initState() {
     super.initState();
     SupabaseUserService().selectFriends(userId).then((value) =>
-        {user_list = value, isUserInitialized = false, setState(() {})});
+        {userList = value, isUserInitialized = false, setState(() {})});
   }
 
   void _performSearch(BuildContext context) async {
     String query = _controller.text;
-    final user_info =
+    final userInfo =
         await SupabaseUserService().addFriend(context, userId, query);
-    if (user_info != null) {
+    if (userInfo != null) {
+      if (!context.mounted) return null;
       await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => FriendWishListPage(
-                user_id: user_info['id'],
-                user_name: user_info['name'],
-                user_image: user_info['image'])),
+                userId: userInfo['id'],
+                userName: userInfo['name'],
+                userImage: userInfo['image'])),
       );
       _controller.text = '';
       setState(() {
         SupabaseUserService().selectFriends(userId).then((value) =>
-            {user_list = value, isUserInitialized = false, setState(() {})});
+            {userList = value, isUserInitialized = false, setState(() {})});
       });
     }
     setState(() {});
@@ -51,12 +52,12 @@ class _FriendsPageState extends State<FriendsPage> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => FriendWishListPage(
-              user_id: id, user_name: name, user_image: image)),
+          builder: (context) =>
+              FriendWishListPage(userId: id, userName: name, userImage: image)),
     );
     setState(() {
       SupabaseUserService().selectFriends(userId).then((value) =>
-          {user_list = value, isUserInitialized = false, setState(() {})});
+          {userList = value, isUserInitialized = false, setState(() {})});
     });
   }
 
@@ -155,12 +156,12 @@ class _FriendsPageState extends State<FriendsPage> {
               Expanded(
                 child: isUserInitialized
                     ? const Center(child: CircularProgressIndicator())
-                    : user_list.length == 0
+                    : userList.isEmpty
                         ? const Center(child: Text('Нет друзей'))
                         : ListView.builder(
-                            itemCount: user_list.length,
+                            itemCount: userList.length,
                             itemBuilder: (context, index) {
-                              final note = user_list[index];
+                              final note = userList[index];
                               return Padding(
                                 padding: const EdgeInsets.all(5.0),
                                 child: Dismissible(
@@ -173,7 +174,7 @@ class _FriendsPageState extends State<FriendsPage> {
                                     setState(() {
                                       SupabaseUserService()
                                           .deleteFriend(note['id']);
-                                      user_list = user_list
+                                      userList = userList
                                           .where((item) =>
                                               item['id'] != note['id'])
                                           .toList();

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:wish_list/Supabase_init.dart';
+import 'package:wish_list/supabase_init.dart';
 import 'package:wish_list/auth/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
-    url: SupabaseInit().url,
-    anonKey: SupabaseInit().key,
+    url: url,
+    anonKey: key,
   );
   runApp(const MyApp());
 }

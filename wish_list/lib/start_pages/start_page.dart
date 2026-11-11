@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:wish_list/Pages/FriendsPage.dart';
-import 'package:wish_list/Pages/MyWishListPage.dart';
+import 'package:wish_list/pages/friends_page.dart';
+import 'package:wish_list/pages/my_wish_list_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
